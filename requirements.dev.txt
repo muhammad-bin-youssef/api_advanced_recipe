@@ -1,2 +1,1 @@
--r requirements.txt
-flake8>=7.0,<8.0
+flake8>=3.9.2,<3.10
