@@ -19,7 +19,7 @@ def create_recipe(user, **kw):
         "link": "test link",
     }
     payload.update(kw)
-    recipe = models.Recipe.objects.create(user, **kw)
+    recipe = models.Recipe.objects.create(user=user, **kw)
     return recipe
 
 
