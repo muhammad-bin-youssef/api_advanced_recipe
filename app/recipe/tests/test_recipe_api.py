@@ -10,6 +10,10 @@ from recipe.serializers import RecipeSerializer
 RECIPE_URL = reverse("recipe:recipe-list")
 
 
+def get_recipe_url(id):
+    return reverse("recipe:recipe-list", args=[id])
+
+
 def create_recipe(user, **kw):
     payload = {
         "title": "test recipe",
@@ -19,8 +23,12 @@ def create_recipe(user, **kw):
         "link": "test link",
     }
     payload.update(kw)
-    recipe = models.Recipe.objects.create(user=user, **kw)
+    recipe = models.Recipe.objects.create(user=user, **payload)
     return recipe
+
+
+def create_user(**kw):
+    return get_user_model().objects.create_user(**kw)
 
 
 class PublicRecipeTest(TestCase):
@@ -36,20 +44,22 @@ class PublicRecipeTest(TestCase):
 class PrivateRecipeTest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
-        self.user = get_user_model().objects.create_user(
+        self.user = create_user(
             email="testrecipe@exaple.com",
             password="password1234",
         )
         self.client.force_authenticate(self.user)
 
     def test_retrive_recipe(self):
-        create_recipe(self.user)
-        create_recipe(self.user)
+        create_recipe(user=self.user)
+        create_recipe(user=self.user)
 
         res = self.client.get(RECIPE_URL)
 
         recipe = models.Recipe.objects.all().order_by("-id")
+
         serializer = RecipeSerializer(recipe, many=True)
+
         self.assertEqual(res.status_code, st.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
@@ -58,11 +68,32 @@ class PrivateRecipeTest(TestCase):
             email="2testrecipe@exaple.com",
             password="password1234",
         )
-        create_recipe(other_user)
-        create_recipe(self.user)
+        create_recipe(user=other_user)
+        create_recipe(user=self.user)
 
         res = self.client.get(RECIPE_URL)
         recipes = models.Recipe.objects.filter(user=self.user)
         serializer = RecipeSerializer(recipes, many=True)
         self.assertEqual(res.status_code, st.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
+
+    def test_create_recipe_success(self):
+        payload = {
+            "title": "Sample recipe",
+            "time_minutes": 30,
+            "price": Decimal("5.99"),
+        }
+        res = self.client.post(RECIPE_URL, payload)
+        recipe = models.Recipe.objects.filter(id=res.data["id"]).exists()
+        self.assertEqual(res.status_code, st.HTTP_201_CREATED)
+        self.assertTrue(recipe)
+
+    def test_partial_update_recipe(self):
+        recipe = create_recipe(user=self.user)
+        payload = {
+            "title": "test update recipe",
+        }
+        url = get_recipe_url(recipe.id)
+        res = self.client.patch(url, payload)
+        self.assertEqual(res.status_code, st.HTTP_200_OK)
+        self.assertEqual(res.data, recipe.data)
