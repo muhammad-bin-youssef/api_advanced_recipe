@@ -42,7 +42,4 @@ class TagViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return models.Tag.objects.filter(user=self.request.user).order_by("-name")
-
-    # NOTE:
-    # Here I can add object level permission
+        return self.queryset.filter(user=self.request.user).order_by("-name")
