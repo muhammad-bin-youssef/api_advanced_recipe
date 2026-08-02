@@ -11,7 +11,7 @@ RECIPE_URL = reverse("recipe:recipe-list")
 
 
 def get_recipe_url(id):
-    return reverse("recipe:recipe-list", args=[id])
+    return reverse("recipe:recipe-detail", args=[id])
 
 
 def create_recipe(user, **kw):
@@ -95,5 +95,8 @@ class PrivateRecipeTest(TestCase):
         }
         url = get_recipe_url(recipe.id)
         res = self.client.patch(url, payload)
+        recipe.refresh_from_db()
         self.assertEqual(res.status_code, st.HTTP_200_OK)
-        self.assertEqual(res.data, recipe.data)
+        self.assertEqual(res.data["link"], recipe.link)
+        self.assertEqual(res.data["title"], recipe.title)
+        self.assertEqual(self.user, recipe.user)

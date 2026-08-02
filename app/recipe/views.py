@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from core import models
@@ -6,7 +6,7 @@ from recipe import serializers
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    serializer_class = serializers.RecipeDetialSerializer
+    serializer_class = serializers.RecipeDetailSerializer
     queryset = models.Recipe.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -28,3 +28,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
     # DETAIL:  Failing row contains (2, test recipe, , 5, 5.50, test link, null).
     # FIX:
     # You just need to overwrite this function so the serializer get user_id.
+
+
+class TagViewSet(
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = serializers.TagSerializer
+    queryset = models.Tag.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return models.Tag.objects.filter(user=self.request.user).order_by("-name")
+
+    # NOTE:
+    # Here I can add object level permission
