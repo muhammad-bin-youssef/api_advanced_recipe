@@ -31,6 +31,8 @@ def get_tag_url(id: int):
 
 URL_Tag = reverse("recipe:tag-list")
 
+URL_RECIPE = reverse("recipe:recipe-list")
+
 
 class TestPublicApi(TestCase):
     def setUp(self) -> None:
@@ -92,7 +94,7 @@ class TestPrivateApi(TestCase):
                 {"name": "Dinner"},
             ],
         }
-        res = self.client.post(URL_Tag, payload, format="json")
+        res = self.client.post(URL_RECIPE, payload, format="json")
         recipes = models.Tag.objects.filter(user=self.user)
         self.assertEqual(res.status_code, st.HTTP_201_CREATED)
         self.assertEqual(recipes.count(), 1)
@@ -113,7 +115,7 @@ class TestPrivateApi(TestCase):
                 {"name": "Breakfast"},
             ],
         }
-        res = self.client.post(URL_Tag, payload, format="json")
+        res = self.client.post(URL_RECIPE, payload, format="json")
         recipes = models.Tag.objects.filter(user=self.user)
         self.assertEqual(res.status_code, st.HTTP_201_CREATED)
         self.assertEqual(recipes.count(), 1)
