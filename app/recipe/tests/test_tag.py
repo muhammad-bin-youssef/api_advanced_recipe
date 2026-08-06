@@ -95,7 +95,7 @@ class TestPrivateApi(TestCase):
             ],
         }
         res = self.client.post(URL_RECIPE, payload, format="json")
-        recipes = models.Tag.objects.filter(user=self.user)
+        recipes = models.Recipe.objects.filter(user=self.user)
         self.assertEqual(res.status_code, st.HTTP_201_CREATED)
         self.assertEqual(recipes.count(), 1)
         recipe = recipes[0]
@@ -116,11 +116,11 @@ class TestPrivateApi(TestCase):
             ],
         }
         res = self.client.post(URL_RECIPE, payload, format="json")
-        recipes = models.Tag.objects.filter(user=self.user)
+        recipes = models.Recipe.objects.filter(user=self.user)
         self.assertEqual(res.status_code, st.HTTP_201_CREATED)
         self.assertEqual(recipes.count(), 1)
         recipe = recipes[0]
-        self.assertEqual(recipe.count(), 2)
+        self.assertEqual(recipe.tags.count(), 2)
         self.assertIn(tag_des, recipe.tags.all())
         for tag in payload["tags"]:
             exists = models.Tag.objects.filter(user=self.user, name=tag["name"])
